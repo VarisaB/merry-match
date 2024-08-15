@@ -54,7 +54,7 @@ function AuthProvider(props) {
             role: userDataFromPayload.role,
           });
         } catch (error) {
-          console.error("Error refreshing token:", error);
+          // console.error("Error refreshing token:", error);
           logout();
         }
       }

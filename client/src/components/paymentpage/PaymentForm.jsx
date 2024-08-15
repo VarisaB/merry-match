@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import MasterCard from "../../../public/assets/paymentpage/MasterCard.png";
@@ -24,11 +24,23 @@ const PaymentForm = () => {
   const [cvcCardError, setCVCError] = useState("");
   const [nameCardError, setNameCardError] = useState("");
   const [loading, setLoading] = useState(false);
-
+  const [errorMessage, setErrorMessage] = useState("");
   const package_id = selectedPackage?.package_id;
   const package_name = selectedPackage?.name;
-  const userId = state.user.id;
+  const userId = state?.user?.id;
+
   const { setMaxDailyQuota } = useMatch();
+
+  useEffect(() => {
+    if (!selectedPackage || !state?.user) {
+      navigate("/package");
+    }
+  }, [selectedPackage, state, navigate]);
+  useEffect(() => {
+    if (errorMessage) {
+      alert(`Payment error: ${errorMessage}`);
+    }
+  }, [errorMessage]);
 
   const handleConfirm = async (event) => {
     event.preventDefault();
@@ -37,7 +49,7 @@ const PaymentForm = () => {
     setExpCardError("");
     setCVCError("");
     setNameCardError("");
-
+    setErrorMessage("");
     let isValid = true;
 
     if (cardNumber.replace(/\s+/g, "").length !== 16) {
@@ -54,7 +66,15 @@ const PaymentForm = () => {
       setExpCardError("Expiry date is required.");
       isValid = false;
     }
+    if (!cvcCard) {
+      setCVCError("CVC is required.");
+      isValid = false;
+    }
 
+    if (!nameCard) {
+      setNameCardError("Card owner is required.");
+      isValid = false;
+    }
     const [month, year] = expCard.split("/");
     if (
       !month ||
@@ -65,16 +85,6 @@ const PaymentForm = () => {
     ) {
       setExpCardError("Invalid expiry date.");
       return false;
-    }
-
-    if (!cvcCard) {
-      setCVCError("CVC is required.");
-      isValid = false;
-    }
-
-    if (!nameCard) {
-      setNameCardError("Card owner is required.");
-      isValid = false;
     }
 
     if (!isValid) return;
@@ -161,11 +171,17 @@ const PaymentForm = () => {
       //   });
       // }
     } catch (error) {
-      // console.error(
-      //   "Payment error:",
-      //   error.response ? error.response.data : error.message
-      // );
-      setLoading(false); // Reset loading state on error
+
+      console.error(
+        "Payment error:",
+        error.response ? error.response.data : error.message
+      );
+
+      setErrorMessage(
+        error.response?.data?.message || "An unexpected error occurred."
+      );
+
+      setLoading(false);
     }
   };
 
