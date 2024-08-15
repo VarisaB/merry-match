@@ -171,6 +171,7 @@ const PaymentForm = () => {
       //   });
       // }
     } catch (error) {
+
       console.error(
         "Payment error:",
         error.response ? error.response.data : error.message
